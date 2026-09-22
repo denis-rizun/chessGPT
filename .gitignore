@@ -85,7 +85,6 @@ outputs/
 lightning_logs/
 
 # datasets & caches
-data/
 datasets/
 *.tar.gz
 *.zip
