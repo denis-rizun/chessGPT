@@ -1,0 +1,35 @@
+[project]
+name = "chessgpt"
+version = "0.1.0"
+description = "Small LLM model for playing chess"
+readme = "README.md"
+authors = [
+    { name = "denis", email = "d.rizun.work@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.3",
+    "python-chess>=1.999",
+    "torch>=2.14.0",
+    "tqdm>=4.70.1",
+    "zstandard>=0.25.0",
+]
+
+[project.scripts]
+chessgpt = "chessgpt:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ruff==0.16.8",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "C", "N", "I", "B", "Q", "T", "UP"]
+
