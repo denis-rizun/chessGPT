@@ -85,7 +85,8 @@ outputs/
 lightning_logs/
 
 # datasets & caches
-datasets/
+src/chessgpt/data/datasets/
+src/chessgpt/data/processed/
 *.tar.gz
 *.zip
 .cache/
