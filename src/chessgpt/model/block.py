@@ -7,7 +7,7 @@ from chessgpt.model.feed_forward import FeedForward
 from chessgpt.model.normalization import RMSNorm
 
 
-class Transformer(nn.Module):
+class TransformerBlock(nn.Module):
     def __init__(self, config: ModelConfig) -> None:
         super().__init__()
 
