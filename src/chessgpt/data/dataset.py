@@ -12,13 +12,13 @@ IGNORE_INDEX = -100
 class ChessDataset(Dataset):
     def __init__(self, data_dir: Path, split: str = "train") -> None:
         self.tokens_path = data_dir / f"{split}.bin"
-        self.boundaries = np.load(data_dir / f"{split}_boundaries.npy")
+        self.boundaries = np.load(data_dir / f"{split}_offsets.npy")
         self.index_to_token = json.loads((data_dir / "vocabulary.json").read_text())
         self._tokens: np.memmap | None = None
 
     @property
     def tokens(self) -> np.memmap:
-        if not self._tokens:
+        if self._tokens is None:
             self._tokens = np.memmap(self.tokens_path, dtype=np.uint16, mode="r")
         return self._tokens
 
