@@ -3,6 +3,7 @@ from pathlib import Path
 
 from chessgpt.data.prepare import prepare_dataset
 from chessgpt.data.verify import verify_dataset
+from chessgpt.logger import configure_logging
 
 
 def main() -> None:
@@ -14,6 +15,7 @@ def main() -> None:
     parser.add_argument("--validation-games", type=int, default=2_000)
 
     args = parser.parse_args()
+    configure_logging()
     prepare_dataset(
         source=args.source,
         output_dir=args.output,

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from chessgpt.evals.legality import GenerationSettings, evaluate_legality
 from chessgpt.evals.report import build_report_payload, print_report, save_report
+from chessgpt.logger import configure_logging
 from chessgpt.model.tokenizer import Vocabulary
 from chessgpt.train.checkpoint import load_checkpoint
 from chessgpt.train.train import select_device
@@ -17,6 +18,7 @@ def main() -> None:
     parser.add_argument("--temperatures", type=float, nargs="+", default=[0.7, 1.0])
     parser.add_argument("--seed", type=int, default=0)
     arguments = parser.parse_args()
+    configure_logging()
 
     device = select_device()
     model, model_config, checkpoint = load_checkpoint(arguments.checkpoint, device)

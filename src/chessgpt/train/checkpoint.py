@@ -1,9 +1,12 @@
 from pathlib import Path
 
+import structlog
 import torch
 
 from chessgpt.model.config import ModelConfig
 from chessgpt.model.transformer import Transformer
+
+logger = structlog.get_logger(__name__)
 
 
 def load_checkpoint(path: Path, device: torch.device) -> tuple[Transformer, ModelConfig, dict]:
@@ -13,5 +16,10 @@ def load_checkpoint(path: Path, device: torch.device) -> tuple[Transformer, Mode
     model.load_state_dict(checkpoint["model_state"])
     model.to(device)
     model.eval()
-    print(f"checkpoint: step {checkpoint['step']}, val loss {checkpoint['validation_loss']:.4f}")
+    logger.info(
+        "checkpoint_loaded",
+        path=str(path),
+        step=checkpoint["step"],
+        validation_loss=round(checkpoint["validation_loss"], 4),
+    )
     return model, config, checkpoint

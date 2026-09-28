@@ -1,6 +1,7 @@
 import re
 
 import chess
+import structlog
 
 from chessgpt.data.filters import GameMetadata, MIN_PLIES, MAX_PLIES
 from chessgpt.model.tokenizer import ELO_BUCKETS, Vocabulary
@@ -8,6 +9,8 @@ from chessgpt.model.tokenizer import ELO_BUCKETS, Vocabulary
 COMMENT_PATTERN = re.compile(r"\{[^}]*\}")
 RESULT_TOKENS = frozenset({"1-0", "0-1", "1/2-1/2", "*"})
 ANNOTATION_CHARACTERS = "?!"
+
+logger = structlog.get_logger(__name__)
 
 
 def extract_san_moves(move_text: str) -> list[str]:
@@ -54,7 +57,7 @@ def encode_game(game_metadata: GameMetadata, move_text: str, vocabulary: Vocabul
         try:
             move = board.parse_san(san)
         except (ValueError, AssertionError) as e:
-            print(str(e))
+            logger.warning("illegal_san", san=san, error=str(e))
             return None
 
         board.push(move)

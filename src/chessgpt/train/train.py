@@ -1,15 +1,19 @@
 import time
 from pathlib import Path
 
+import structlog
 import torch
 from torch import nn
 
 from chessgpt.data.dataset import build_dataloader
+from chessgpt.logger import configure_logging
 from chessgpt.model.config import ModelConfig
 from chessgpt.model.transformer import Transformer
 from chessgpt.train.config import TrainConfig
 from chessgpt.train.evaluate import estimate_validation_loss
 from chessgpt.train.optimizer import build_optimizer, learning_rate_at
+
+logger = structlog.get_logger(__name__)
 
 
 def select_device() -> torch.device:
@@ -39,9 +43,13 @@ def train(model_config: ModelConfig, config: TrainConfig) -> None:
 
     steps_per_epoch = len(train_loader)
     total_steps = steps_per_epoch * config.epochs
-    print(f"device: {device}")
-    print(f"parameters: {model.parameter_count():,}")
-    print(f"steps per epoch: {steps_per_epoch}, total: {total_steps}")
+    logger.info(
+        "training_started",
+        device=str(device),
+        parameters=model.parameter_count(),
+        steps_per_epoch=steps_per_epoch,
+        total_steps=total_steps,
+    )
 
     best_validation_loss = float("inf")
     step = 0
@@ -64,26 +72,32 @@ def train(model_config: ModelConfig, config: TrainConfig) -> None:
             optimizer.step()
 
             if step % config.log_every == 0:
-                elapsed = time.time() - started
-                print(
-                    f"epoch {epoch} step {step}/{total_steps} "
-                    f"loss {loss.item():.4f} lr {learning_rate:.2e} "
-                    f"{elapsed:.0f}s"
+                logger.info(
+                    "train_step",
+                    epoch=epoch,
+                    step=step,
+                    total_steps=total_steps,
+                    loss=round(loss.item(), 4),
+                    learning_rate=learning_rate,
+                    elapsed_s=round(time.time() - started),
                 )
 
             if step > 0 and step % config.eval_every == 0:
                 validation_loss = estimate_validation_loss(model, validation_loader, config.eval_batches, device)
-                print(f"  validation: {validation_loss:.4f}")
+                logger.info("validation", step=step, validation_loss=round(validation_loss, 4))
 
                 if validation_loss < best_validation_loss:
                     best_validation_loss = validation_loss
                     save_checkpoint(model, model_config, step, validation_loss, config.output_dir)
-                    print(f"  checkpoint saved")
+                    logger.info("checkpoint_saved", step=step, path=str(config.output_dir / "best.pt"))
 
             step += 1
 
-    print(f"done in {(time.time() - started) / 60:.1f} min, "
-          f"best val loss {best_validation_loss:.4f}")
+    logger.info(
+        "training_finished",
+        elapsed_min=round((time.time() - started) / 60, 1),
+        best_validation_loss=round(best_validation_loss, 4),
+    )
 
 
 def save_checkpoint(
@@ -120,4 +134,5 @@ if __name__ == "__main__":
         batch_size=32,
         epochs=5,
     )
+    configure_logging(log_file=train_config.output_dir / "train.log")
     train(model_config, train_config)
